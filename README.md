@@ -1,4 +1,3 @@
-```markdown
 # Dormitory Attendance and Rest Monitoring System
 
 ## 📝 System Overview
