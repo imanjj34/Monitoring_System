@@ -1,7 +1,7 @@
 # Dormitory Attendance and Rest Monitoring System
 
 ## 📝 System Overview
-The system is designed to monitor student attendance, temporary exits, and rest room usage in a dormitory. Student identification is performed using secure RFID cards. The system records all activities and stores them in a cloud database.
+The system monitors student attendance, temporary exits, and rest room usage in a dormitory. Student identification is performed using secure RFID cards. The system records events locally when needed and synchronizes them with a cloud database.
 
 ---
 
@@ -11,9 +11,9 @@ The system is designed to monitor student attendance, temporary exits, and rest 
 * Record rest room usage.
 * Calculate daily rest duration.
 * Provide real-time status information.
-* Send daily SMS reports to parents.
 * Minimize hardware complexity.
 * Operate reliably with intermittent Internet connectivity.
+* Keep SMS notifications disabled by default, with support for end-of-day reporting only.
 
 ---
 
@@ -22,7 +22,7 @@ The system is designed to monitor student attendance, temporary exits, and rest 
 * Secure **RFID reader**
 * Secure **RFID cards**
 * **Push button** for Rest Mode
-* **SIM800 GSM** module
+* **SIM800 GSM** module (optional for future use)
 * **Wi-Fi connection**
 * **OLED display** (optional)
 * **Buzzer** and **status LEDs**
@@ -83,14 +83,14 @@ Each student record contains:
     * The student scans the RFID card.
     * The system records `Rest Start`.
 3.  **Rest End**
-    * The student scans the RFID card again.
+    * The next RFID card scan ends rest.
     * The system records `Rest End`.
 4.  **Temporary Exit**
-    * The next RFID scan is recorded as `Dorm Out`.
+    * After rest ends, the next RFID scan can record `Dorm Out`.
 5.  **Re-entry**
     * The following RFID scan is recorded as `Dorm In`.
 
-> *The sequence continues throughout the day.*
+> *Students may skip rest mode and go directly from `Dorm In` to `Dorm Out` if needed. It's also possible to end rest and then exit the dormitory.*
 
 ---
 
@@ -133,32 +133,22 @@ Every event contains:
 ## 📡 Communication
 * ESP32 communicates with Cloudflare Worker through **HTTPS**.
 * All event synchronization uses **JSON** messages.
-* If the Internet is unavailable, events are stored locally and synchronized automatically when the connection is restored.
+* The system attempts cloud sync immediately and retries as often as possible.
+* Duplicate scans are ignored if the same card is read again within a short delay.
+* If the network remains unavailable after retries, the event is kept locally as a fallback so it is not lost.
+* When connectivity is restored, the ESP32 retries sending all pending local events to the cloud after a short delay.
 
 ---
 
 ## 📋 Daily Report
-At a predefined time every day:
-1.  ESP32 requests the daily report from Cloudflare Worker.
-2.  Worker calculates daily statistics.
-3.  Worker returns:
-    * Student name
-    * Parent phone number
-    * Total rest duration
-    * Number of dormitory entries
-    * Number of temporary exits
+Daily reporting is generated at the end of the day. The system also tracks the first dorm entry event separately for status monitoring.
 
 ---
 
 ## 💬 SMS Notification
-* ESP32 receives the report from Cloudflare Worker.
-* The SIM800 module sends an SMS directly to each student's parent.
-* The SMS may contain:
-    * Student name
-    * Date
-    * Total rest duration
-    * Number of dormitory entries
-    * Number of temporary exits
+* SMS notifications are disabled by default.
+* Daily SMS summaries are only intended for the end-of-day report, not for repeated entries during the same day.
+* The SIM800 module is available for future activation, but it is not required for current operation.
 
 ---
 
@@ -198,7 +188,6 @@ The dormitory supervisor can request:
 * Secure RFID authentication
 * Automatic synchronization
 * Automatic daily reporting
-* Direct SMS notification
 * Easy scalability
 * Suitable for real-world deployment
 
@@ -220,3 +209,4 @@ The dormitory supervisor can request:
  RFID Reader  Button     SIM800     OLED/Buzzer
      │
  Secure RFID Cards
+```
