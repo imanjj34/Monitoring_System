@@ -108,16 +108,23 @@
 # 🔗 ارتباط بین جدول‌ها
 USERS
 │
-├── CARDS (1 به چند)
+├── CARDS (1 → N)
+│     └── هر کاربر می‌تواند چند کارت RFID داشته باشد
 │
-└── ATTENDANCE (1 به چند)
+└── ATTENDANCE (1 → N)
+      └── هر کاربر می‌تواند چندین رکورد ورود/خروج داشته باشد
+
 
 DEVICES
-└── ATTENDANCE (1 به چند)
+│
+└── ATTENDANCE (1 → N)
+      └── هر دستگاه می‌تواند چندین رویداد ثبت کند
+
 
 LOGS
-└── DEVICES (اختیاری)
-
+│
+└── DEVICES (اختیاری / غیرمستقیم)
+      └── برای ردیابی خطاهای مربوط به دستگاه‌ها
 
 ---
 
@@ -125,19 +132,20 @@ LOGS
 
 
 ESP32
-↓ (api_key)
-Worker
-↓
-Validate Device
-↓
-Read UID
-↓
-Find User (via cards)
-↓
-Insert Attendance
-↓
-Return Response
-
+  ↓
+ارسال درخواست + api_key
+  ↓
+Worker / Backend
+  ↓
+Validate Device (بررسی api_key و active بودن)
+  ↓
+Read RFID UID از کارت
+  ↓
+Find User (از طریق جدول CARDS)
+  ↓
+Insert Attendance (ثبت ورود / خروج)
+  ↓
+Return Response به ESP32
 
 ---
 
