@@ -106,3 +106,55 @@
 ---
 
 # 🔗 ارتباط بین جدول‌ها
+USERS
+│
+├── CARDS (1 به چند)
+│
+└── ATTENDANCE (1 به چند)
+
+DEVICES
+└── ATTENDANCE (1 به چند)
+
+LOGS
+└── DEVICES (اختیاری)
+
+
+---
+
+# 🧩 جریان واقعی سیستم
+
+
+ESP32
+↓ (api_key)
+Worker
+↓
+Validate Device
+↓
+Read UID
+↓
+Find User (via cards)
+↓
+Insert Attendance
+↓
+Return Response
+
+
+---
+
+# ⚙️ نکات طراحی حرفه‌ای (خیلی مهم)
+
+### 1. event فقط این‌ها باشد:
+- enter  
+- exit  
+
+---
+
+### 2. status فقط:
+- 0 = inactive  
+- 1 = active  
+
+---
+
+### 3. زمان:
+
+datetime('now')
